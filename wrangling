@@ -1,0 +1,123 @@
+R.home() # Get R Home Directory
+
+# Complete Cleanup Function
+cc <- function() {
+  gc()
+  #rm(list = ls())
+  #cat("\014") # Clears Console: [Ctrl] + [l]
+}
+
+# Execute line: [Cmd] + [Enter]
+
+# Folders & Files
+library(readr)
+R.home() # Get R Home Directory
+getwd() # Get Working (active) Directory
+UserPath <- "~" # Active User path
+Pycharm <- "PycharmProjects"# PyCharm Project folder under Active User
+CurDir <- "Weather" # The weather data is saved in the Weather folder
+
+# The great thing about file.path is that is does not matter if you are on e.g. MacOS or Windows.
+FilePath <- file.path(UserPath, Pycharm, CurDir) # Platform independent filepath constructor
+setwd(FilePath) # Set working directory to CurDir folder in Pycharm
+FileName <- "Weather.csv" # csv file to be read
+csvFile <- file.path(FilePath,FileName) 
+
+# Open csv file in R
+CurData <- read_csv(csvFile) # Reads csv file into R object, 
+
+# spec(x) where x is the data frame object to extract from
+typeof(CurData)
+spec(CurData) # Full column specifications, takes data frame as argument
+
+# Adjust sample size for data description with if else loop to look at data
+if (nrow(CurData) < 10) {
+  rowEnd <- nrow(CurData)
+} else {
+    rowEnd <- 10
+}
+
+# Adjust sample size for data description with if else function to look at data
+ifelse(nrow(CurData) < 10, rowEnd <- nrow(CurData),rowEnd <- 10) # Vector equivalent of if else
+ifelse(ncol(CurData) < 5, colEnd <- ncol(CurData),colEnd <- 5) # Vector equivalent of if else
+
+# str
+str(CurData) # Structure of an Arbitrary R Object
+str(CurData[0:rowEnd,1:colEnd]) # Structure of an Arbitrary R Object, here sample size
+cat("\014") # Clear Console: [Ctrl] + [l]
+
+# summary(x) # Summary of an Arbitrary R Object (Min, 1st Quartile, Median, Mean, 3rd Quartile, Max)
+summary(CurData) # Entire data frame
+summary(CurData[0:rowEnd,1:colEnd]) # sample size
+cat("\014") # Clear Console: [Ctrl] + [l]
+
+# ls
+ls(CurData) # List Objects
+ls(CurData[1:colEnd]) # List Objects, sample size (max 5 columns)
+cat("\014") # Clear Console: [Ctrl] + [l]
+
+# ls.str
+ls.str(CurData) # List Objects and their Structure
+ls.str(CurData[1:colEnd]) # List Objects and their Structure, sample size (max 10 rows and max 5 columns)
+cat("\014") # Clear Console: [Ctrl] + [l]
+
+# names
+names(CurData) # List names (columns)
+names(CurData[1:colEnd]) # List names (column), sample size (max 5 columns)
+cat("\014") # Clear Console: [Ctrl] + [l]
+
+# typeof(x)
+typeof(CurData)
+cat("\014") # Clear Console: [Ctrl] + [l]
+
+# Replace large Integers with NA
+CurData[CurData == -999 | CurData == -9999] <- NA # Set all specific values to NA
+
+# Display all rows with NA in a specific column
+subset(CurData,is.na(CurData[3]))
+# Save the subset 
+temp <- subset(CurData,is.na(CurData[3]))
+
+# Replace NA with interpolated values
+library(zoo)
+
+# summary(x) will display the number of NA's
+summary(CurData)
+
+# You can also use sapply to apply a Function over a List or Vector
+cntna <- sapply(CurData, function(y) sum(length(which(is.na(y)))))
+cntna
+cntna <- data.frame('NA'=cntna)
+colnames(cntna) <- c('Count')
+cntna$pcttot <- cntna/nrow(CurData)
+colnames(cntna[2]) <- c('Pct. of total')
+pcttot <- NULL
+cntna$pcttot <- cntna/nrow(CurData)
+cntna
+summary(cntna)
+
+for (i in 1:nrow(cntna)) {
+  cntna$pcttot <- CurData[cntna]/nrow(CurData)
+}
+
+# Loop through the columns 
+from <- 2 # Default 1 will not be used here since it is a sorted column with dates without duplicates
+to <- 3 # Default ncol(CurData) will not be used here
+
+for (CurCol in from:to){
+  CurData[CurCol] <- na.approx(CurData[CurCol])
+}  
+
+# Loop through a list of selected columns
+CurLst <- c('vism', 'visi', 'pressurem', 'pressurei')
+
+for (CurCol in CurLst){
+  CurData[CurCol] <- na.approx(CurData[CurCol])
+}
+
+CurData['vism']
+# Apply a Function over a List or Vector
+
+for (CurCol in 1:ncol(CurData)){
+  print(sum(is.na(CurData[CurCol])))
+}  
